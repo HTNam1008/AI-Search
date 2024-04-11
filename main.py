@@ -1,7 +1,7 @@
 from environment import Matrix,ReadFile
 import visualization as vs,searchAlgorithm as sa
 
-inputResource = ReadFile('../Search/input.txt')
+inputResource = ReadFile('./input.txt')
 print(inputResource.pickUpPoint())
 ORIGIN_MATRIX = (-150,-300)
 ORIGIN_MENU = (-700,-300)
