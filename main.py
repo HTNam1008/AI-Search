@@ -1,19 +1,18 @@
 from environment import Matrix,ReadFile
 import visualization as vs,searchAlgorithm as sa
+import time
 
-inputResource = ReadFile('./input.txt')
-print(inputResource.pickUpPoint())
-ORIGIN_MATRIX = (-150,-300)
-ORIGIN_MENU = (-700,-300)
+inputResource = ReadFile('AI-search/input.txt')
+ORIGIN_MATRIX = (-700,-300)
+ORIGIN_MENU = (150,-300)
 
 
 #set up matrix
 mat = Matrix(inputResource.matrixSize())
 mat.addBlocks(inputResource.blocks())
-mapMatrix= vs.Matrix(ORIGIN_MATRIX)
+mapMatrix= vs.Maze(ORIGIN_MATRIX)
 mapMatrix.draw(mat.matrix)
 mapMatrix.drawStartGoal(inputResource.source(),inputResource.goal())
-mapMatrix.drawPickUp(inputResource.pickUpPoint())
 robot = vs.Robot(ORIGIN_MATRIX,mapMatrix.size)
 costText = vs.Text(ORIGIN_MENU)
 search = sa.SearchAlgorithm(mat.matrix,mapMatrix)
@@ -22,12 +21,12 @@ costPath = 0
 costExpanded = 0
 
 #set up buttons and corresponding functions
-button = (vs.Button(ORIGIN_MENU,'Breadth-first search'),
-        vs.Button(ORIGIN_MENU,'Uniform-cost search'),
-        vs.Button(ORIGIN_MENU,'Iterative deepening search'),
-        vs.Button(ORIGIN_MENU,'Greedy-best first search'),
-        vs.Button(ORIGIN_MENU,'Graph-search A*'),
-        vs.Button(ORIGIN_MENU,'Dijkstra-search')
+button = (vs.Button(ORIGIN_MENU,'Breadth-first Search'),
+        vs.Button(ORIGIN_MENU,'Uniform-cost Search'),
+        vs.Button(ORIGIN_MENU,'Iterative Deepening Search'),
+        vs.Button(ORIGIN_MENU,'Greedy-best First Search'),
+        vs.Button(ORIGIN_MENU,'Graph Search A*'),
+        vs.Button(ORIGIN_MENU,'Travelling Sales Man Search')
 
         )
 
@@ -48,17 +47,9 @@ for i,butt in enumerate(button):
 
 
 textPen = vs.Text(ORIGIN_MENU)
-# text_pen.print_text((100,680),'University of Science - VNUHCM',FONT_SIZE=11)
-# text_pen.print_text((0,640),'PROJECT 1: The Searching Algorithm',FONT_SIZE=19,mode='bold')
-# text_pen.print_text((0,610),'Subject: Fundamentals of Artificial Intelligence')
-# text_pen.print_text((0,585),'Implemented by : Thai Chi Hien')
-# text_pen.print_text((0,560),'Lecture: Pham Trong Nghia')
-# text_pen.print_text((0,535),'TA: Nguyen Thai Vu')
-
-# text_pen.print_text((0,500),'Please edit the matrix, starting point, ending point and',FONT_SIZE=14)
-# text_pen.print_text((138,478),'input.txt',FONT_SIZE=14,mode='underline')
-# text_pen.print_text((0,478),'obstacles in the               file located in the same',FONT_SIZE=14)
-# text_pen.print_text((0,456),'directory as this source file',FONT_SIZE=14)
+textPen.printText((120,680),'University of Science - VNUHCM',FONT_SIZE=11)
+textPen.printText((0,640),'PROJECT 1: The Searching Algorithm',FONT_SIZE=19,mode='bold')
+textPen.printText((180,610),'Group: 07', mode='bold',FONT_SIZE=15)
 
 textPen.printText((0,425),'Choose one of the algorithms below to find the path:',FONT_SIZE=14)
 
@@ -85,28 +76,22 @@ def enableAllbuttons():
 
 
 while True:
-    # try:
+    
         for i,butt in enumerate(button):
             butt.update()
             if butt.result():
                 disableAllbuttons(butt,search,robot)
                 if (i!=5):
                     pathToGoal,costPath,costExpanded = function_run[i](inputResource.source(),inputResource.goal())
-                    print(pathToGoal)
                 else:
+                    mapMatrix.drawPickUp(inputResource.pickUpPoint())
+                    time.sleep(1)
                     pathToGoal,costPath,costExpanded = function_run[i](inputResource.source(),inputResource.goal(),inputResource.pickUpPoint())
-                    print(pathToGoal)
-                # print(pathToGoal.len())
                 if pathToGoal :
                     robot.play(pathToGoal)
-                    costText.printText((0,-30),'Cost of the path : {0}'.format(costPath),FONT_SIZE=15,mode = 'bold')
-                    costText.printText((0,-80),'Cost of the expanded node : {0}'.format(costExpanded),FONT_SIZE=15,mode = 'bold')
+                    costText.printText((-10,-40),'Cost of the path : {0}'.format(costPath),FONT_SIZE=15,mode = 'bold')
+                    costText.printText((-10,-90),'Cost of the expanded node : {0}'.format(costExpanded),FONT_SIZE=15,mode = 'bold')
                     enableAllbuttons()
                 else :
-                    costText.printText((0,-30),'No path found',FONT_SIZE=15,mode = 'bold')
+                    costText.printText((-10,-40),'No path found',FONT_SIZE=15,mode = 'bold')
                     enableAllbuttons()
-    # except Exception as e:
-    #     print(e)
-    #     break
-    # except:
-    #     break

@@ -1,5 +1,5 @@
 import random
-from visualization import COLOR_VISITED_POINT_IDS, Matrix,COLOR_VISITED_POINT,COLOR_FINISHED_POINT
+from visualization import COLOR_VISITED_POINT_IDS, Maze,COLOR_VISITED_POINT,COLOR_FINISHED_POINT
 from environment import BLOCKED,VISITED,np
 from sys import maxsize
 from itertools import permutations
@@ -11,22 +11,22 @@ class SearchAlgorithm:
         self.moveset = [self.right,self.down,self.left,self.up]
         random.shuffle(self.moveset)
         self.visited = np.copy(graph)
-        self.original_graph = graph
+        self.originalGraph = graph
         self.frontier = []
-        self.visual = Matrix(visual.leftmost_pos)
+        self.visual = Maze(visual.leftmostPos)
         self.visual.size = visual.size
         self.allpaths = {}
 
     #Breath First Search
-    def findBFS(self,start_point : tuple,goal_point : tuple):
+    def findBFS(self,startPoint : tuple,goalPoint : tuple):
         '''
         Breath First Search
         '''
 
-        start = (start_point[1],start_point[0])
-        goal = (goal_point[1],goal_point[0])
+        start = (startPoint[1],startPoint[0])
+        goal = (goalPoint[1],goalPoint[0])
 
-        if not (self.isvalid_move(start) and self.isvalid_move(goal)):  
+        if not (self.isValidMove(start) and self.isValidMove(goal)):  
             raise Exception("Invalid start or goal point")
         
         if (start == goal):
@@ -35,23 +35,23 @@ class SearchAlgorithm:
         self.visited[start] = VISITED
         self.frontier = []
         self.frontier.append((start,(-1,-1)))           #the second point is the previous of the first point
-        expanded_cost = 0
+        expandedCost = 0
 
         while self.frontier:
-            current_move = self.frontier.pop(0)
-            self.allpaths[current_move[0]] = current_move[1]
-            expanded_cost += 1
-            if current_move[0] != start:
-                self.visual.drawSquare((current_move[0][1],current_move[0][0]),COLOR_VISITED_POINT)
-            if current_move[0] == goal:
-                self.visual.drawSquare((current_move[0][1],current_move[0][0]),COLOR_FINISHED_POINT)
+            currentMove = self.frontier.pop(0)
+            self.allpaths[currentMove[0]] = currentMove[1]
+            expandedCost += 1
+            if currentMove[0] != start:
+                self.visual.drawSquare((currentMove[0][1],currentMove[0][0]),COLOR_VISITED_POINT)
+            if currentMove[0] == goal:
+                self.visual.drawSquare((currentMove[0][1],currentMove[0][0]),COLOR_FINISHED_POINT)
                 break
 
             for movefrom in self.moveset:
-                posible_move = movefrom(current_move)
-                if self.isvalid_move(posible_move[0]):
-                    self.visited[posible_move[0]] = VISITED
-                    self.frontier.append(posible_move)
+                posibleMove = movefrom(currentMove)
+                if self.isValidMove(posibleMove[0]):
+                    self.visited[posibleMove[0]] = VISITED
+                    self.frontier.append(posibleMove)
             random.shuffle(self.moveset)
                     
         path = goal
@@ -68,17 +68,17 @@ class SearchAlgorithm:
             else:
                 result.clear()
                 break
-        return result,cost,expanded_cost
+        return result,cost,expandedCost
 
     #Uniform Cost Search
-    def findUCS(self,start_point : tuple,goal_point : tuple):
+    def findUCS(self,startPoint : tuple,goalPoint : tuple):
         '''
         Uniform Cost Search
         '''
 
-        start = (start_point[1],start_point[0])
-        goal = (goal_point[1],goal_point[0])
-        if not (self.isvalid_move(start) and self.isvalid_move(goal)):  
+        start = (startPoint[1],startPoint[0])
+        goal = (goalPoint[1],goalPoint[0])
+        if not (self.isValidMove(start) and self.isValidMove(goal)):  
             raise Exception("Invalid start or goal point")
 
         if (start == goal):
@@ -88,31 +88,31 @@ class SearchAlgorithm:
         self.frontier = {}
         self.frontier[start] = (0,(-1,-1))
         #self.frontier.append((0,start,(-1,-1)))     #(cost to current point,current point,previous point)
-        expanded_cost = 0
+        expandedCost = 0
 
         while self.frontier:
             
-            current_move = min(self.frontier, key=self.frontier.get)
-            self.visited[current_move] = VISITED
-            expanded_cost += 1
-            if current_move != start:
-                self.visual.drawSquare((current_move[1],current_move[0]),COLOR_VISITED_POINT)
-            self.allpaths[current_move] = self.frontier[current_move]
+            currentMove = min(self.frontier, key=self.frontier.get)
+            self.visited[currentMove] = VISITED
+            expandedCost += 1
+            if currentMove != start:
+                self.visual.drawSquare((currentMove[1],currentMove[0]),COLOR_VISITED_POINT)
+            self.allpaths[currentMove] = self.frontier[currentMove]
             
-            if current_move == goal:
-                self.visual.drawSquare((current_move[1],current_move[0]),COLOR_FINISHED_POINT)
+            if currentMove == goal:
+                self.visual.drawSquare((currentMove[1],currentMove[0]),COLOR_FINISHED_POINT)
                 break
 
             for movefrom in self.moveset:
                 cost = 1    #cost in each step
-                posible_move_newmove,posible_move_oldmove = movefrom((current_move,self.frontier[current_move][1]))  
-                posible_move = (self.frontier[current_move][0] + cost,posible_move_newmove,posible_move_oldmove)   #Ex: posible_move = (12,(7,8),(7,7))
-                if self.isvalid_move(posible_move[1]):
-                    if not posible_move[1] in self.frontier:
-                        self.frontier[posible_move[1]] = (posible_move[0],posible_move[2])
-                    elif posible_move[0] < self.frontier[posible_move[1]][0]:
-                        self.frontier[posible_move[1]] = (posible_move[0],posible_move[2])
-            self.frontier.pop(current_move)
+                posibleMove_newmove,posibleMove_oldmove = movefrom((currentMove,self.frontier[currentMove][1]))  
+                posibleMove = (self.frontier[currentMove][0] + cost,posibleMove_newmove,posibleMove_oldmove)   #Ex: posibleMove = (12,(7,8),(7,7))
+                if self.isValidMove(posibleMove[1]):
+                    if not posibleMove[1] in self.frontier:
+                        self.frontier[posibleMove[1]] = (posibleMove[0],posibleMove[2])
+                    elif posibleMove[0] < self.frontier[posibleMove[1]][0]:
+                        self.frontier[posibleMove[1]] = (posibleMove[0],posibleMove[2])
+            self.frontier.pop(currentMove)
             random.shuffle(self.moveset)
 
         #self.frontier.clear()
@@ -120,7 +120,7 @@ class SearchAlgorithm:
         result = []
         result.append(path)
         if path in self.allpaths:
-            path_cost = self.allpaths[path][0]
+            pathCost = self.allpaths[path][0]
         else:
             result.clear()
             return result,0,0
@@ -133,40 +133,40 @@ class SearchAlgorithm:
             # else:
             #     result.clear()
             #     break
-        return result,path_cost,expanded_cost
+        return result,pathCost,expandedCost
     
     #Iterative deepening Search
-    def findIDS(self,start_point,goal_point,visualize = True):
+    def findIDS(self,startPoint,goalPoint,visualize = True):
         '''
         Iterative Deepening Search
         '''
-        self.list_color = [COLOR_VISITED_POINT,COLOR_VISITED_POINT_IDS]
+        self.listColor = [COLOR_VISITED_POINT,COLOR_VISITED_POINT_IDS]
         self.INDEX = False
 
 
-        start = (start_point[1],start_point[0])
-        goal = (goal_point[1],goal_point[0])
-        if not (self.isvalid_move(start) and self.isvalid_move(goal)):  
+        start = (startPoint[1],startPoint[0])
+        goal = (goalPoint[1],goalPoint[0])
+        if not (self.isValidMove(start) and self.isValidMove(goal)):  
             raise Exception("Invalid start or goal point")
 
         if (start == goal):
             return [start],0,0
 
-        expanded_cost = 0
+        expandedCost = 0
         depth = 1
         MAX_DEPTH = self.visited.shape[0]*self.visited.shape[1]
         self.frontier = []
 
         while depth <= MAX_DEPTH:
-            finish,expanded_cost = self.DLS(start,goal,depth,visualize)
+            finish,expandedCost = self.DLS(start,goal,depth,visualize)
             if finish: break
-            self.visited = np.copy(self.original_graph)
+            self.visited = np.copy(self.originalGraph)
             self.allpaths.clear()
             self.frontier.clear()
             depth *= 2
             #self.INDEX = not self.INDEX
             self.visual.pen.clear()
-            expanded_cost = 0
+            expandedCost = 0
 
         path = goal
         result = []
@@ -183,7 +183,7 @@ class SearchAlgorithm:
                 result.clear()
                 break
             
-        return result,cost,expanded_cost
+        return result,cost,expandedCost
         
 
     def DLS(self,start,goal,limit_depth,visualize):
@@ -194,48 +194,48 @@ class SearchAlgorithm:
         depth = -1
         reached = False
         success = False
-        expanded_cost = 0
+        expandedCost = 0
         previous_point = [self.frontier[0][1],(-2,-2)]
 
         while self.frontier:
-            current_move = self.frontier.pop()
-            if current_move[1] == previous_point[0]:
+            currentMove = self.frontier.pop()
+            if currentMove[1] == previous_point[0]:
                 depth += 1
-                previous_point[0] = current_move[0]
-                previous_point[1] = current_move[1]
-            elif current_move[1] == previous_point[1]:
+                previous_point[0] = currentMove[0]
+                previous_point[1] = currentMove[1]
+            elif currentMove[1] == previous_point[1]:
                 pass
             else:
                 depth -= 1
-                previous_point[0] = current_move[0]
-                previous_point[1] = current_move[1]
+                previous_point[0] = currentMove[0]
+                previous_point[1] = currentMove[1]
 
-            self.allpaths[current_move[0]] = current_move[1]
-            self.visited[current_move[0]] = VISITED
-            expanded_cost += 1
-            if current_move[0] == goal:
-                self.visual.drawSquare((current_move[0][1],current_move[0][0]),COLOR_FINISHED_POINT)
+            self.allpaths[currentMove[0]] = currentMove[1]
+            self.visited[currentMove[0]] = VISITED
+            expandedCost += 1
+            if currentMove[0] == goal:
+                self.visual.drawSquare((currentMove[0][1],currentMove[0][0]),COLOR_FINISHED_POINT)
                 success = True
                 break
-            if visualize and current_move[0] != start:
-                self.visual.drawSquare((current_move[0][1],current_move[0][0]),self.list_color[self.INDEX])
+            if visualize and currentMove[0] != start:
+                self.visual.drawSquare((currentMove[0][1],currentMove[0][0]),self.listColor[self.INDEX])
             
             for movefrom in self.moveset:
-                posible_move = movefrom(current_move)
-                if self.isvalid_move(posible_move[0]) and depth < limit_depth:
-                    self.frontier.append(posible_move)
+                posibleMove = movefrom(currentMove)
+                if self.isValidMove(posibleMove[0]) and depth < limit_depth:
+                    self.frontier.append(posibleMove)
         
-        return success,expanded_cost
+        return success,expandedCost
 
     #Greedy Best First Search
-    def findGBFS(self,start_point,goal_point):
+    def findGBFS(self,startPoint,goalPoint):
         '''
         Greedy Best First Search
         '''
-        start = (start_point[1],start_point[0])
-        goal = (goal_point[1],goal_point[0])
+        start = (startPoint[1],startPoint[0])
+        goal = (goalPoint[1],goalPoint[0])
         reached = False
-        if not (self.isvalid_move(start) and self.isvalid_move(goal)):  
+        if not (self.isValidMove(start) and self.isValidMove(goal)):  
             raise Exception("Invalid start or goal point")
         
         if (start == goal):
@@ -245,29 +245,29 @@ class SearchAlgorithm:
         self.visited[start] = VISITED
         self.frontier = []
         self.frontier.append((start,(-1,-1))) 
-        expanded_cost = 0
+        expandedCost = 0
         reached = False
 
         while self.frontier:
             self.frontier.sort(key= lambda move: self.heuristic(move[0],goal))
-            current_move = self.frontier.pop(0)
-            #current_move = min(self.frontier,key= lambda move: self.heuristic(move[0],goal))
+            currentMove = self.frontier.pop(0)
+            #currentMove = min(self.frontier,key= lambda move: self.heuristic(move[0],goal))
             
-            self.allpaths[current_move[0]] = current_move[1]
-            if current_move[0] == goal:
-                self.visual.drawSquare((current_move[0][1],current_move[0][0]),COLOR_FINISHED_POINT)
+            self.allpaths[currentMove[0]] = currentMove[1]
+            if currentMove[0] == goal:
+                self.visual.drawSquare((currentMove[0][1],currentMove[0][0]),COLOR_FINISHED_POINT)
                 break
-            self.visited[current_move[0]] = VISITED
-            expanded_cost += 1
-            if current_move[0] != start:
-                self.visual.drawSquare((current_move[0][1],current_move[0][0]),COLOR_VISITED_POINT)
+            self.visited[currentMove[0]] = VISITED
+            expandedCost += 1
+            if currentMove[0] != start:
+                self.visual.drawSquare((currentMove[0][1],currentMove[0][0]),COLOR_VISITED_POINT)
 
 
             #self.frontier.clear()
             for movefrom in self.moveset:
-                posible_move = movefrom(current_move)
-                if self.isvalid_move(posible_move[0]):
-                    self.frontier.append(posible_move)
+                posibleMove = movefrom(currentMove)
+                if self.isValidMove(posibleMove[0]):
+                    self.frontier.append(posibleMove)
             
             random.shuffle(self.moveset)
         path = goal
@@ -285,18 +285,18 @@ class SearchAlgorithm:
                 result.clear()
                 break
             
-        return result,cost,expanded_cost
+        return result,cost,expandedCost
 
     #A* Search
-    def findASS(self,start_point,goal_point):
+    def findASS(self,startPoint,goalPoint):
         '''
         A* Search
         '''
 
-        start = (start_point[1],start_point[0])
-        goal = (goal_point[1],goal_point[0])
+        start = (startPoint[1],startPoint[0])
+        goal = (goalPoint[1],goalPoint[0])
         reached = False
-        if not (self.isvalid_move(start) and self.isvalid_move(goal)):  
+        if not (self.isValidMove(start) and self.isValidMove(goal)):  
             raise Exception("Invalid start or goal point")
         
         if (start == goal):
@@ -305,42 +305,42 @@ class SearchAlgorithm:
         self.visited[start] = VISITED
         self.frontier = {}
         self.frontier[start] = (0,(-1,-1))
-        expanded_cost = 0
+        expandedCost = 0
 
         while self.frontier:
-            current_move = self.bestway(goal)
-            self.allpaths[current_move[0]] = current_move[1]
-            self.visited[current_move[0]] = VISITED
-            expanded_cost += 1
-            if current_move[0] != start:
-                self.visual.drawSquare((current_move[0][1],current_move[0][0]),COLOR_VISITED_POINT)
+            currentMove = self.bestway(goal)
+            self.allpaths[currentMove[0]] = currentMove[1]
+            self.visited[currentMove[0]] = VISITED
+            expandedCost += 1
+            if currentMove[0] != start:
+                self.visual.drawSquare((currentMove[0][1],currentMove[0][0]),COLOR_VISITED_POINT)
             
-            if current_move[0] == goal:
-                self.visual.drawSquare((current_move[0][1],current_move[0][0]),COLOR_FINISHED_POINT)
+            if currentMove[0] == goal:
+                self.visual.drawSquare((currentMove[0][1],currentMove[0][0]),COLOR_FINISHED_POINT)
                 break
             
             for movefrom in self.moveset:
                 cost = 1    #cost in each step
-                posible_move_newmove,posible_move_oldmove = movefrom((current_move[0],current_move[1][1]))  
-                posible_move = (current_move[1][0] + cost,posible_move_newmove,posible_move_oldmove)
-                if self.isvalid_move(posible_move[1]):
-                    if not posible_move[1] in self.frontier:
-                        self.frontier[posible_move[1]] = (posible_move[0],posible_move[2])
+                posibleMove_newmove,posibleMove_oldmove = movefrom((currentMove[0],currentMove[1][1]))  
+                posibleMove = (currentMove[1][0] + cost,posibleMove_newmove,posibleMove_oldmove)
+                if self.isValidMove(posibleMove[1]):
+                    if not posibleMove[1] in self.frontier:
+                        self.frontier[posibleMove[1]] = (posibleMove[0],posibleMove[2])
                     else:
-                        move_in_frontier = self.frontier[posible_move[1]]
-                        f_cost_current = self.f((posible_move[0],posible_move[1]),goal)
-                        f_cost_old = self.f((move_in_frontier[0],posible_move[1]),goal)
+                        move_in_frontier = self.frontier[posibleMove[1]]
+                        f_cost_current = self.f((posibleMove[0],posibleMove[1]),goal)
+                        f_cost_old = self.f((move_in_frontier[0],posibleMove[1]),goal)
                         if f_cost_current < f_cost_old:
-                            self.frontier[posible_move[1]] = (posible_move[0],posible_move[2])
+                            self.frontier[posibleMove[1]] = (posibleMove[0],posibleMove[2])
     
-            self.frontier.pop(current_move[0])
+            self.frontier.pop(currentMove[0])
             random.shuffle(self.moveset)
                     
         path = goal
         result = []
         result.append(path)
         if(path in self.allpaths):  
-            path_cost = self.allpaths[path][0]
+            pathCost = self.allpaths[path][0]
         else:
             result.clear()
             return result,0,0
@@ -354,7 +354,7 @@ class SearchAlgorithm:
                 result.clear()
                 break
 
-        return result,path_cost,expanded_cost
+        return result,pathCost,expandedCost
 
     def heuristic(self,point,goal):     #the Manhattan distance
         return abs(point[0] - goal[0]) + abs(point[1] - goal[1])
@@ -363,7 +363,6 @@ class SearchAlgorithm:
     def f(self,move : tuple,goal):    
         g = move[0]
         h = self.heuristic(move[1],goal)
-        print(g+h)
         return g + h
 
     def bestway(self,goal):
@@ -412,7 +411,7 @@ class SearchAlgorithm:
         return result
 
     #check next move
-    def isvalid_move(self,point):
+    def isValidMove(self,point):
         return (0 <= point[0] < self.visited.shape[0]  #go out of maze
             and 0 <= point[1] < self.visited.shape[1]
             and not self.visited[point])               #obstacle or already visited
@@ -420,13 +419,10 @@ class SearchAlgorithm:
     #reset
     def clear(self):
         self.visual.pen.clear()
-        self.visited = np.copy(self.original_graph)
+        self.visited = np.copy(self.originalGraph)
         self.frontier.clear()
         self.allpaths.clear()
     
-
-
-
     # implementation of traveling Salesman Problem
     def travellingSalesmanSearch(self,graph: Graph, s: int, V: int):
         # store all vertex apart from source vertex
@@ -436,14 +432,14 @@ class SearchAlgorithm:
                 vertex.append(i)
     
         # store minimum weight Hamiltonian Cycle
-        min_path = maxsize
-        min_path_sequence = None
-        next_permutation=permutations(vertex)
+        minPath = maxsize
+        minPathSequence = None
+        nextPermutation=permutations(vertex)
         adj=graph.graphAdj()
-        for i in next_permutation:
+        for i in nextPermutation:
     
             # store current Path weight(cost)
-            current_pathweight = 0
+            currentPathWeight = 0
     
             # compute current path weight
             k = s
@@ -451,36 +447,36 @@ class SearchAlgorithm:
                 temp=adj[k]
                 for l in temp:
                     if (l[0]==j):
-                        current_pathweight += l[1]
+                        currentPathWeight += l[1]
                         k = j
 
             for j in adj[k]:
                 if (j[0]==V-1):
-                    current_pathweight += j[1]
+                    currentPathWeight += j[1]
                     
-                # current_pathweight += adj[k][V-1][1]
-            # current_pathweight += graph[V-1][s]
+                # currentPathWeight += adj[k][V-1][1]
+            # currentPathWeight += graph[V-1][s]
 
             # Chuyển đổi các tuple trong danh sách i sang list
             
             # update minimum
-            if (current_pathweight<min_path):
-                min_path = current_pathweight
-                min_path_sequence=[s] + list(i) + [V-1]
+            if (currentPathWeight<minPath):
+                minPath = currentPathWeight
+                minPathSequence=[s] + list(i) + [V-1]
             
-        return min_path, min_path_sequence
+        return minPath, minPathSequence
     
-    def convert_points(self,start_point, pick_up_points, goal_point):
+    def convertPoints(self,startPoint, pickUpPoints, goalPoint):
         converted_points = {}
-        converted_points[0] = start_point
-        for i, point in enumerate(pick_up_points, start=1):
+        converted_points[0] = startPoint
+        for i, point in enumerate(pickUpPoints, start=1):
             converted_points[i] = point
-        converted_points[len(pick_up_points) + 1] = goal_point
+        converted_points[len(pickUpPoints) + 1] = goalPoint
         return converted_points
 
     def findTSP(self,startPoint,goalPoint,pickUpPoint):
         graph=Graph(len(pickUpPoint)+2)
-        points=self.convert_points(startPoint,pickUpPoint,goalPoint)
+        points=self.convertPoints(startPoint,pickUpPoint,goalPoint)
         path=[]
         for key,value in points.items():
             if (key!=0 and key!=len(points)-1):

@@ -10,7 +10,7 @@ COLOR_VISITED_POINT = '#97E9EF'
 COLOR_VISITED_POINT_IDS = '#3D8389'
 COLOR_FINISHED_POINT = '#D3008A'
 COLOR_PICKUP_POINT = '#FFD700'
-ICON_TURTLE = 'robot.gif'
+ICON_TURTLE = 'AI-search/robot.gif'
 
 screen = turtle.Screen()
 screen.setup(width= 1.0,height= 1.0)
@@ -19,21 +19,18 @@ try:
 except:
     pass
 
-
-
-
-class Matrix:
+class Maze:
     def __init__(self,origin =(0,0)) -> None:
         self.pen = turtle.Turtle()
         self.pen.speed(0)
         self.size = 40
-        self.leftmost_pos = origin
+        self.leftmostPos = origin
         self.pen.hideturtle()
 
     
     def draw(self,matrix):
         screen.tracer(0)
-        pos = list(self.leftmost_pos)    #origin
+        pos = list(self.leftmostPos)    #origin
 
         if matrix.shape[1] > 22:
             self.size = 40 - (matrix.shape[1] - 22)*2
@@ -45,19 +42,19 @@ class Matrix:
             for x in range(matrix.shape[1]):
                 self.drawSquareMatrix(pos,matrix[y][x])
                 pos[0] += self.size
-            pos[0] = self.leftmost_pos[0]
+            pos[0] = self.leftmostPos[0]
             pos[1] += self.size
 
 
         for x in range(matrix.shape[1]):
-            pos = (self.leftmost_pos[0] + self.size*x + self.size/2 - 2,self.leftmost_pos[1] - 30)
+            pos = (self.leftmostPos[0] + self.size*x + self.size/2 - 2,self.leftmostPos[1] - 30)
             self.pen.up()
             self.pen.setpos(pos)
             self.pen.down()
             self.pen.write(x,font=('Arial', 11, 'normal'))
 
         for y in range(matrix.shape[0]):
-            pos = (self.leftmost_pos[0] -20 ,self.leftmost_pos[1] + self.size*y + self.size/2 - 2)
+            pos = (self.leftmostPos[0] -20 ,self.leftmostPos[1] + self.size*y + self.size/2 - 2)
             self.pen.up()
             self.pen.setpos(pos)
             self.pen.down()
@@ -102,7 +99,7 @@ class Matrix:
 
     def drawSquare(self,pos,pen_color):
         screen.tracer(0)
-        start_pos = (self.leftmost_pos[0] + self.size*pos[0],self.leftmost_pos[1] + self.size*pos[1])
+        start_pos = (self.leftmostPos[0] + self.size*pos[0],self.leftmostPos[1] + self.size*pos[1])
         self.pen.speed(0)
         self.pen.pencolor('Black')
         self.pen.width(1)
@@ -122,8 +119,6 @@ class Matrix:
         screen.tracer(1)
 
     
-
-
 class Robot:
     def __init__(self,pos_matrix,size_block) -> None:
         self.pen = turtle.Turtle()
@@ -132,7 +127,7 @@ class Robot:
         self.pen.pencolor('Green')
         self.pen.width(5)
         self.size = size_block
-        self.leftmost_pos = pos_matrix
+        self.leftmostPos = pos_matrix
 
     
     def play(self,path):
@@ -145,15 +140,15 @@ class Robot:
         temp = path.pop()
 
         self.pen.up()
-        cur_pos = (self.leftmost_pos[0] + self.size*temp[1] + self.size/2,
-                    self.leftmost_pos[1] + self.size*temp[0] + self.size/2)
+        cur_pos = (self.leftmostPos[0] + self.size*temp[1] + self.size/2,
+                    self.leftmostPos[1] + self.size*temp[0] + self.size/2)
         self.pen.setpos(cur_pos)
         self.pen.down()
         while path:
             temp = path.pop()
             
-            next_pos = (self.leftmost_pos[0] + self.size*temp[1] + self.size/2,
-                    self.leftmost_pos[1] + self.size*temp[0] + self.size/2)
+            next_pos = (self.leftmostPos[0] + self.size*temp[1] + self.size/2,
+                    self.leftmostPos[1] + self.size*temp[0] + self.size/2)
             
             self.pen.setheading(self.pen.towards(next_pos))
             self.pen.forward(self.size)
@@ -178,7 +173,7 @@ class Button:
         self.pen = turtle.Turtle()
         self.pen.speed(0)
         self.pen.fillcolor('White')
-        self.leftmost_pos = origin
+        self.leftmostPos = origin
         self.IsClick = False
         self.text = message
         self.pen.shape(shape)
@@ -195,12 +190,12 @@ class Button:
 
     def textOnButton(self):
         self.pen.up()
-        self.pen.setpos(self.leftmost_pos[0] + self.pos[0] + 25,self.leftmost_pos[1] + self.pos[1] - 20)
+        self.pen.setpos(self.leftmostPos[0] + self.pos[0] + 25,self.leftmostPos[1] + self.pos[1] - 20)
         self.pen.down()
 
         self.pen.write(self.text,font=self.FONT)
         self.pen.up()
-        self.pen.setpos(self.leftmost_pos[0] + self.pos[0],self.leftmost_pos[1] + self.pos[1] - 10)
+        self.pen.setpos(self.leftmostPos[0] + self.pos[0],self.leftmostPos[1] + self.pos[1] - 10)
         self.pen.down()
 
     def update(self):
@@ -248,13 +243,13 @@ class Text:
     def __init__(self,origin) -> None:
         self.pen = turtle.Turtle()
         self.pen.speed(0)
-        self.leftmost_pos = origin
+        self.leftmostPos = origin
         self.pen.hideturtle()
 
     def printText(self,pos,message : str,FONT_SIZE = 12,mode = 'normal'):
         screen.tracer(0)
         self.pen.up()
-        self.pen.setpos(self.leftmost_pos[0] + pos[0] + 25,self.leftmost_pos[1] + pos[1] - 20)
+        self.pen.setpos(self.leftmostPos[0] + pos[0] + 25,self.leftmostPos[1] + pos[1] - 20)
         self.pen.down()
 
         
@@ -274,7 +269,7 @@ class Block(Text):
         screen.tracer(0)
         self.pen.width(1)
         self.pen.up()
-        self.pen.setpos(self.leftmost_pos[0] + pos[0] - size + 15,self.leftmost_pos[1] + pos[1] -25)
+        self.pen.setpos(self.leftmostPos[0] + pos[0] - size + 15,self.leftmostPos[1] + pos[1] -25)
         self.pen.down()
 
         self.pen.fillcolor(color_block)
