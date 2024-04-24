@@ -38,13 +38,13 @@ img = np.ones(((row + 1) * boxSize, (col + 1) * boxSize, 3), 'uint8') * 255
 maze = np.zeros((row + 1, col + 1), dtype='int8')
 
 # === HELPER ===
-def drawPoint(x, y, val):
-    y = row - y
-    v1 = (x * boxSize, y * boxSize)
-    v2 = ((x + 1) * boxSize, (y + 1) * boxSize)
+def renderPoint(x_coord, y_coord, value):
+    y_coord = row - y_coord
+    v1 = (x_coord * boxSize, y_coord * boxSize)
+    v2 = ((x_coord + 1) * boxSize, (y_coord + 1) * boxSize)
     color = (0, 0, 0)
     cv.rectangle(img, v1, v2, color)
-    if val != 0:
+    if value != 0:
         t1 = list(v1); t2 = list(v2)
         t1[0] += 1; t1[1] += 1
         t2[0] -= 1; t2[1] -= 1
@@ -52,27 +52,27 @@ def drawPoint(x, y, val):
         v2 = tuple(t2)
         color = (0, 222, 255)
         font = cv.FONT_HERSHEY_SIMPLEX
-        org = (x * boxSize + 5, y * boxSize + 21)
-        if val == -1:
-            color = (115, 115, 115)
+        org = (x_coord * boxSize + 5, y_coord * boxSize + 21)
+        if value == -1:
+            color = (255, 115, 115)
             cv.rectangle(img, v1, v2, color, -1)
-        elif val == 1:
-            color=(255, 51, 51)
+        elif value == 1:
+            color=(255, 255, 0)
             cv.rectangle(img, v1, v2, color, -1)
             cv.putText(img, 'S', org, font, 0.75, (0, 0, 0), 2, cv.LINE_AA)
-        elif val == 2:
+        elif value == 2:
             color = (84, 0, 255)
             cv.rectangle(img, v1, v2, color, -1)
             cv.putText(img, 'G', org, font, 0.75, (0, 0, 0), 2, cv.LINE_AA)
-        elif val == 3:
+        elif value == 3:
             color = (0, 255, 255)
             cv.rectangle(img, v1, v2, color, -1)
-        elif val == 4:
-            color = (239, 233, 151)
+        elif value == 4:
+            color = (204, 0, 204)
             cv.rectangle(img, v1, v2, color, -1)
             cv.putText(img, "r", org, font, 0.75, (0, 0, 0), 2, cv.LINE_AA)
-        elif val >= 5:
-            color=(51, 153, 255)
+        elif value >= 5:
+            color=(0, 204, 0)
             cv.rectangle(img, v1, v2, color, -1)
 
 def round(x):
@@ -80,21 +80,21 @@ def round(x):
         return math.ceil(x)
     return math.floor(x)
 
-def makeLine(p1, p2, k):
-    if (p1[0] == p2[0]):
-        for i in range(min(p1[1], p2[1]), max(p1[1], p2[1]) + 1):
-            maze[i, p1[0]] = k
+def drawLine(point1, point2, value):
+    if (point1[0] == point2[0]):
+        for i in range(min(point1[1], point2[1]), max(point1[1], point2[1]) + 1):
+            maze[i, point1[0]] = value
         return
-    if (p1[1] == p2[1]):
-        for i in range(min(p1[0], p2[0]), max(p1[0], p2[0]) + 1):
-            maze[p1[1], i] = k
+    if (point1[1] == point2[1]):
+        for i in range(min(point1[0], point2[0]), max(point1[0], point2[0]) + 1):
+            maze[point1[1], i] = value
         return
-    a = (p1[1] - p2[1]) / (p1[0] - p2[0])
-    b = p1[1] - a * p1[0]
-    for i in range(min(p1[0], p2[0]), max(p1[0], p2[0]) + 1):
-       maze[round(a * i + b), i] = k
-    for i in range(min(p1[1], p2[1]), max(p1[1], p2[1]) + 1):
-       maze[i, round((i - b) / a)] = k
+    slope = (point1[1] - point2[1]) / (point1[0] - point2[0])
+    intercept = point1[1] - slope * point1[0]
+    for i in range(min(point1[0], point2[0]), max(point1[0], point2[0]) + 1):
+       maze[round(slope * i + intercept), i] = value
+    for i in range(min(point1[1], point2[1]), max(point1[1], point2[1]) + 1):
+       maze[i, round((i - intercept) / slope)] = value
 
 
 # === INIT ===
@@ -111,8 +111,8 @@ for i in range(nPo):
         maze[Po[i][j + 1], Po[i][j]] = 5 + i
 for i in range(nPo):
     for j in range(0, len(Po[i])-3, 2):
-        makeLine(Po[i][j:j + 2], Po[i][j + 2:j + 4], i + 5)
-    makeLine(Po[i][-2:], Po[i][0:2], i + 5)
+        drawLine(Po[i][j:j + 2], Po[i][j + 2:j + 4], i + 5)
+    drawLine(Po[i][-2:], Po[i][0:2], i + 5)
 # fill border in maze
 for i in range(row + 1):
     maze[i, 0] = maze[i, col] = -1
@@ -121,37 +121,40 @@ for i in range(col + 1):
 # draw graph
 for i in range(0, col + 1):
     for j in range(0, row + 1):
-        drawPoint(i, j, maze[j, i])
+        renderPoint(i, j, maze[j, i])
 
-# Using BFS to find route
+# Using breadthFirstSearch to find route
 dx = [0,-1, 0, 1,-1,-1, 1, 1]
 dy = [1, 0,-1, 0, 1,-1,-1, 1]
-def bfs(maze, start):
-    queue = collections.deque([[start]])
-    seen = set()
-    seen.add(start)
+
+
+def breadthFirstSearch(maze, start_point):
+    queue = collections.deque([[start_point]])
+    visited = set()
+    visited.add(start_point)
     while queue:
         path = queue.popleft()
-        r, c = path[-1]
-        if maze[r, c] == 2:
+        current_row, current_col = path[-1]
+        if maze[current_row, current_col] == 2:
             return path
-        for k in range(8):
-            i = r + dy[k]
-            j = c + dx[k]
-            if 0 < j < col and 0 < i < row:
-                if (maze[i][j] == 0 or maze[i][j] == 2) and (i, j) not in seen:
-                    # Skip step that go through the polygon
-                    if k > 3:
-                        if k == 4 and maze[i, j + 1] == maze[i - 1, j] and maze[i - 1, j] >= 5:
+        for direction in range(8):
+            new_row = current_row + dy[direction]
+            new_col = current_col + dx[direction]
+            if 0 < new_col < col and 0 < new_row < row:
+                if (maze[new_row][new_col] == 0 or maze[new_row][new_col] == 2) and (new_row, new_col) not in visited:
+                    # Skip steps that go through the polygon
+                    if direction > 3:
+                        if direction == 4 and maze[new_row, new_col + 1] == maze[new_row - 1, new_col] and maze[new_row - 1, new_col] >= 5:
                             continue
-                        if k == 5 and maze[i, j + 1] == maze[i + 1, j] and maze[i + 1, j] >= 5:
+                        if direction == 5 and maze[new_row, new_col + 1] == maze[new_row + 1, new_col] and maze[new_row + 1, new_col] >= 5:
                             continue
-                        if k == 6 and maze[i, j - 1] == maze[i + 1, j] and maze[i + 1, j] >= 5:
+                        if direction == 6 and maze[new_row, new_col - 1] == maze[new_row + 1, new_col] and maze[new_row + 1, new_col] >= 5:
                             continue
-                        if k == 7 and maze[i, j - 1] == maze[i - 1, j] and maze[i - 1, j] >= 5:
+                        if direction == 7 and maze[new_row, new_col - 1] == maze[new_row - 1, new_col] and maze[new_row - 1, new_col] >= 5:
                             continue
-                    queue.append(path + [(i, j)])
-                    seen.add((i, j))
+                    queue.append(path + [(new_row, new_col)])
+                    visited.add((new_row, new_col))
+
 
 
 move = [(1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1)]
@@ -204,7 +207,7 @@ def movePolygons():
 def updateGraph():
     for i in range(0, col + 1):
         for j in range(0, row + 1):
-            drawPoint(i, j, maze[j, i])
+            renderPoint(i, j, maze[j, i])
 
 # Check if can go from p1(r1, c1) to p2(r2, c2) or not
 # p1, p2 is already in the maze 
@@ -232,7 +235,7 @@ def calCost(p1, p2):
 cost = 0
 count = 0
 prevS = None
-route = bfs(maze, S)
+route = breadthFirstSearch(maze, S)
 if route == None:
     count += 1
 else:
@@ -270,7 +273,7 @@ while cv.waitKey(1000 // speed) != ord('q') and cv.getWindowProperty("Robot find
         break
     if route == None: # got stuck
         count += 1
-        route = bfs(maze, prevS) # find new route
+        route = breadthFirstSearch(maze, prevS) # find new route
         if route == None:
             movePolygons()
         else:

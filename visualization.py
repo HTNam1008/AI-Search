@@ -10,7 +10,7 @@ COLOR_VISITED_POINT = '#97E9EF'
 COLOR_VISITED_POINT_IDS = '#3D8389'
 COLOR_FINISHED_POINT = '#D3008A'
 COLOR_PICKUP_POINT = '#FFD700'
-ICON_TURTLE = 'AI-search/robot.gif'
+ICON_TURTLE = './robot.gif'
 
 screen = turtle.Screen()
 screen.setup(width= 1.0,height= 1.0)
